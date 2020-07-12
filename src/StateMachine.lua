@@ -25,5 +25,3 @@ end
 function StateMachine:render()
     self.current:render()
 end
-    
-end
