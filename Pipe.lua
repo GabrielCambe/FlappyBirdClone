@@ -1,8 +1,8 @@
 Pipe = Class{}
 
-local PIPE_IMAGE = love.graphics.newImage('pipe.png')
+local PIPE_IMAGE = love.graphics.newImage('assets/pipe.png')
 
-PIPE_SPEED = 55
+PIPE_SPEED = 60
 PIPE_WIDTH = PIPE_IMAGE:getWidth()
 PIPE_HEIGHT = PIPE_IMAGE:getHeight()
 

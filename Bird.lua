@@ -3,7 +3,7 @@ Bird = Class{}
 local GRAVITY = 20
 
 function Bird:init()
-    self.image = love.graphics.newImage('bird.png')
+    self.image = love.graphics.newImage('assets/bird.png')
     self.width = self.image:getWidth()
     self.height = self.image:getHeight()
 
@@ -12,6 +12,16 @@ function Bird:init()
 
     self.dy = 0
     self.JUMP_VELOCITY = -5
+end
+
+function Bird:collides(pipe)
+    if (self.x+2) + (self.width-4) >= pipe.x and (self.x + 2) <= pipe.x + PIPE_WIDTH then
+        if (self.y+2) + (self.height-4) >= pipe.y and (self.y+2) <= pipe.y + PIPE_HEIGHT then
+            return true
+        end
+    end
+
+    return false
 end
 
 function Bird:update(dt)

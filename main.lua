@@ -3,6 +3,10 @@ Class = require 'class'
 require 'Bird'
 require 'Pipe'
 require 'PipePair'
+require 'StateMachine'
+require 'states/BaseState'
+require 'states/PlayState'
+require 'states/TitleScreenState'
 
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -10,11 +14,11 @@ WINDOW_HEIGHT = 720
 VIRTUAL_WIDTH = 512
 VIRTUAL_HEIGHT = 288
 
-local background = love.graphics.newImage('background.png')
-backgroundScroll = 0
+local background = love.graphics.newImage('assets/background.png')
+local backgroundScroll = 0
 
-local ground = love.graphics.newImage('ground.png')
-groundScroll = 0
+local ground = love.graphics.newImage('assets/ground.png')
+local groundScroll = 0
 
 local BACKGROUND_SCROLL_SPEED = 30
 local BACKGROUND_LOOPING_POINT = 413
@@ -22,18 +26,17 @@ local BACKGROUND_LOOPING_POINT = 413
 local GROUND_SCROLL_SPEED = 60
 local GROUND_LOOPING_POINT = 514
 
-local bird = Bird()
-
--- local pipes = {}
-local pipePairs = {}
-
-local spawn_timer = 0
-
-local lastY = -PIPE_HEIGHT + math.random(80) +20
+local scrolling = true
 
 function love.load()
     love.graphics.setDefaultFilter('nearest', 'nearest')
-    love.window.setTitle('Flappy Bird')
+    love.window.setTitle('Flappy Clone')
+
+    smallFont = love.graphics.newFont('fonts/font.ttf', 8)
+    mediumFont = love.graphics.newFont('fonts/flappy.ttf', 14)
+    flappyFont = love.graphics.newFont('fonts/flappy.ttf', 28)
+    hugeFont =love.graphics.newFont('fonts/flappy.ttf', 58)
+    love.graphics.setFont(flappyFont)
 
     math.randomseed(os.time())
 
@@ -47,41 +50,24 @@ function love.load()
         }
     )
 
+    gStateMachine = StateMachine {
+        ['title'] = function() return TitleScreenState() end,
+        ['play'] = function() return PlayState() end,
+    }
+
+    gStateMachine:change('title')
+
     love.keyboard.keyPressed = {}
 end
 
 function love.update(dt)
+    -- if scrolling then
     backgroundScroll = (backgroundScroll + BACKGROUND_SCROLL_SPEED * dt)
-        % BACKGROUND_LOOPING_POINT
+            % BACKGROUND_LOOPING_POINT
     groundScroll = (groundScroll + GROUND_SCROLL_SPEED * dt)
-        % GROUND_LOOPING_POINT
+            % GROUND_LOOPING_POINT
 
-    spawn_timer = spawn_timer + dt
-    if spawn_timer > 2 then
-        local y = math.max(
-                    -PIPE_HEIGHT + 10,
-                    math.min(
-                        lastY + math.random(-20,20),
-                        VIRTUAL_HEIGHT - 90 - PIPE_HEIGHT
-                    )
-                )
-        lastY = y
-        -- table.insert( pipes, Pipe())
-        table.insert( pipePairs, PipePair(y))
-        spawn_timer = 0
-    end
-
-    bird:update(dt)
-
-    for k, pair in pairs(pipePairs) do
-        pair:update(dt)    
-    end
-
-    for k, pair in pairs(pipePairs) do
-        if pair.remove then
-            table.remove( pipePairs, k )
-        end    
-    end
+    gStateMachine:update(dt)
 
     love.keyboard.keyPressed = {}
 end
@@ -109,14 +95,8 @@ function love.draw()
     push:start()
 
     love.graphics.draw(background, -backgroundScroll, 0)
-   
-    for k, pair in pairs(pipePairs) do
-        pair:render()
-    end
-
+    gStateMachine:render()
     love.graphics.draw(ground, -groundScroll, VIRTUAL_HEIGHT-16)
-
-    bird:render()
 
     push:finish()
 end
